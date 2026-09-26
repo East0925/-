@@ -41,19 +41,55 @@ let previousPage = 'buildings-page';
 
 // 从本地存储加载预约记录
 function loadReservations() {
-    const saved = localStorage.getItem('classroom_reservations');
-    if (saved) {
-        try {
+    try {
+        const saved = localStorage.getItem('classroom_reservations');
+        if (saved) {
             reservations = JSON.parse(saved);
-        } catch (e) {
+        } else {
             reservations = [];
         }
+    } catch (e) {
+        console.error('加载预约记录失败:', e);
+        reservations = [];
     }
 }
 
 // 保存预约记录到本地存储
 function saveReservations() {
-    localStorage.setItem('classroom_reservations', JSON.stringify(reservations));
+    try {
+        localStorage.setItem('classroom_reservations', JSON.stringify(reservations));
+    } catch (e) {
+        console.error('保存预约记录失败:', e);
+    }
+}
+
+// 保存用户信息到本地存储
+function saveCurrentUser() {
+    try {
+        localStorage.setItem('current_user', JSON.stringify(currentUser));
+    } catch (e) {
+        console.error('保存用户信息失败:', e);
+    }
+}
+
+// 从本地存储加载用户信息
+function loadCurrentUser() {
+    try {
+        const saved = localStorage.getItem('current_user');
+        if (saved) {
+            currentUser = JSON.parse(saved);
+            return true;
+        }
+    } catch (e) {
+        console.error('加载用户信息失败:', e);
+    }
+    return false;
+}
+
+// 清除用户信息
+function clearCurrentUser() {
+    currentUser = null;
+    localStorage.removeItem('current_user');
 }
 
 // 生成教室数据
@@ -110,7 +146,9 @@ function getOccupiedSlotIds(classroomId, date) {
     );
     const occupiedIds = new Set();
     dayReservations.forEach(r => {
-        r.slots.forEach(slotId => occupiedIds.add(slotId));
+        if (r.slots && Array.isArray(r.slots)) {
+            r.slots.forEach(slotId => occupiedIds.add(slotId));
+        }
     });
     return Array.from(occupiedIds);
 }
@@ -126,9 +164,9 @@ function getSlotInfo(slotId) {
     return timeSlots.find(s => s.id === slotId);
 }
 
-// 获取当前用户的预约记录
+// 获取当前用户的预约记录（按姓名匹配）
 function getUserReservations() {
-    if (!currentUser) return [];
+    if (!currentUser || !currentUser.name) return [];
     return reservations.filter(r => r.userName === currentUser.name);
 }
 
@@ -137,15 +175,23 @@ function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    document.getElementById(pageId).classList.add('active');
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
     window.scrollTo(0, 0);
 }
 
 // 跳转到我的预约页面
 function goToMyReservations() {
     const activePage = document.querySelector('.page.active');
-    if (activePage) {
+    if (activePage && activePage.id) {
         previousPage = activePage.id;
+    }
+    if (!currentUser) {
+        alert('请先登录');
+        showPage('login-page');
+        return;
     }
     renderMyReservations();
     showPage('reservations-page');
@@ -158,13 +204,17 @@ function backFromReservations() {
 
 // 渲染我的预约列表
 function renderMyReservations() {
+    if (!currentUser) return;
+    
     const userReservations = getUserReservations();
     const list = document.getElementById('reservations-list');
     const emptyState = document.getElementById('empty-state');
     
+    if (!list || !emptyState) return;
+    
     document.getElementById('header-username-3').textContent = currentUser.name;
     const roleNames = { student: '学生', teacher: '教师', leader: '领导' };
-    document.getElementById('header-role-3').textContent = roleNames[currentUser.role];
+    document.getElementById('header-role-3').textContent = roleNames[currentUser.role] || '用户';
     
     const upcoming = userReservations.filter(r => isUpcoming(r.date));
     const past = userReservations.filter(r => !isUpcoming(r.date));
@@ -183,8 +233,10 @@ function renderMyReservations() {
     emptyState.style.display = 'none';
     
     const sortedReservations = [...userReservations].sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date);
-        return Math.min(...a.slots) - Math.min(...b.slots);
+        if (a.date !== b.date) return b.date.localeCompare(a.date);
+        const minA = a.slots ? Math.min(...a.slots) : 0;
+        const minB = b.slots ? Math.min(...b.slots) : 0;
+        return minB - minA;
     });
     
     list.innerHTML = '';
@@ -232,7 +284,7 @@ function renderMyReservations() {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                         </svg>
-                        <span>${reservation.userPhone}</span>
+                        <span>${reservation.userPhone || '-'}</span>
                     </div>
                     <div class="detail-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -241,7 +293,7 @@ function renderMyReservations() {
                             <line x1="16" y1="13" x2="8" y2="13"/>
                             <line x1="16" y1="17" x2="8" y2="17"/>
                         </svg>
-                        <span>${reservation.purpose}</span>
+                        <span>${reservation.purpose || '-'}</span>
                     </div>
                 </div>
             </div>
@@ -304,7 +356,7 @@ function openCancelModal(reservationId) {
         <p><strong>教学楼：</strong>${reservation.buildingName}</p>
         <p><strong>教室：</strong>${reservation.classroomNumber} 教室</p>
         <p><strong>预约人：</strong>${reservation.userName}</p>
-        <p><strong>联系电话：</strong>${reservation.userPhone}</p>
+        <p><strong>联系电话：</strong>${reservation.userPhone || '-'}</p>
         <p><strong>日期：</strong>${reservation.date}</p>
         <p><strong>时段：</strong>${slotNames}</p>
     `;
@@ -413,6 +465,7 @@ function initLoginForm() {
             };
         }
         
+        saveCurrentUser();
         updateUserInfo();
         renderBuildings();
         showPage('buildings-page');
@@ -421,21 +474,33 @@ function initLoginForm() {
 
 // 更新用户信息显示
 function updateUserInfo() {
+    if (!currentUser) return;
+    
     const roleNames = {
         student: '学生',
         teacher: '教师',
         leader: '领导'
     };
     
-    document.getElementById('header-username').textContent = currentUser.name;
-    document.getElementById('header-role').textContent = roleNames[currentUser.role];
-    document.getElementById('header-username-2').textContent = currentUser.name;
-    document.getElementById('header-role-2').textContent = roleNames[currentUser.role];
+    const usernameEls = ['header-username', 'header-username-2', 'header-username-3'];
+    const roleEls = ['header-role', 'header-role-2', 'header-role-3'];
+    
+    usernameEls.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = currentUser.name;
+    });
+    
+    roleEls.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = roleNames[currentUser.role] || '用户';
+    });
 }
 
 // 渲染楼宇列表
 function renderBuildings() {
     const grid = document.getElementById('buildings-grid');
+    if (!grid) return;
+    
     grid.innerHTML = '';
     
     buildings.forEach((building, index) => {
@@ -505,6 +570,8 @@ function updateFilterButtons() {
 // 渲染教室列表
 function renderClassrooms() {
     const grid = document.getElementById('classrooms-grid');
+    if (!grid) return;
+    
     grid.innerHTML = '';
     const today = getTodayDate();
     const viewDate = currentSelectedDate || today;
@@ -516,7 +583,10 @@ function renderClassrooms() {
         filteredClassrooms = currentClassrooms.filter(c => !isClassroomAvailable(c.id, viewDate));
     }
     
-    document.getElementById('classrooms-total').textContent = filteredClassrooms.length;
+    const totalEl = document.getElementById('classrooms-total');
+    if (totalEl) {
+        totalEl.textContent = filteredClassrooms.length;
+    }
     
     filteredClassrooms.forEach((classroom, index) => {
         const available = isClassroomAvailable(classroom.id, viewDate);
@@ -585,6 +655,8 @@ function renderTimeSlots(classroomId, date) {
     const afternoonContainer = document.getElementById('afternoon-slots');
     const eveningContainer = document.getElementById('evening-slots');
     
+    if (!morningContainer || !afternoonContainer || !eveningContainer) return;
+    
     morningContainer.innerHTML = '';
     afternoonContainer.innerHTML = '';
     eveningContainer.innerHTML = '';
@@ -635,6 +707,12 @@ function toggleSlot(slotId) {
 
 // 打开预约弹窗
 function openReserveModal(classroom) {
+    if (!currentUser) {
+        alert('请先登录');
+        showPage('login-page');
+        return;
+    }
+    
     selectedClassroom = classroom;
     selectedSlots = [];
     currentSelectedDate = getTodayDate();
@@ -666,7 +744,10 @@ function openReserveModal(classroom) {
 
 // 关闭弹窗
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
 // 初始化弹窗
@@ -706,14 +787,16 @@ function initModals() {
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
-            modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+            }
         });
     });
 }
 
 // 确认预约
 function confirmReserve() {
-    if (!selectedClassroom) return;
+    if (!selectedClassroom || !currentUser) return;
     
     const date = document.getElementById('reserve-date').value;
     const purpose = document.getElementById('modal-purpose-text').value.trim();
@@ -807,20 +890,33 @@ function initBackButtons() {
 
 // 初始化我的预约按钮
 function initMyReservationsButtons() {
-    document.getElementById('my-reservations-btn').addEventListener('click', () => {
-        previousPage = 'buildings-page';
-        goToMyReservations();
-    });
+    const btn1 = document.getElementById('my-reservations-btn');
+    if (btn1) {
+        btn1.addEventListener('click', () => {
+            previousPage = 'buildings-page';
+            goToMyReservations();
+        });
+    }
     
-    document.getElementById('my-reservations-btn-2').addEventListener('click', () => {
-        previousPage = 'classrooms-page';
-        goToMyReservations();
-    });
+    const btn2 = document.getElementById('my-reservations-btn-2');
+    if (btn2) {
+        btn2.addEventListener('click', () => {
+            previousPage = 'classrooms-page';
+            goToMyReservations();
+        });
+    }
 }
 
 // 初始化
 function init() {
     loadReservations();
+    
+    if (loadCurrentUser() && currentUser) {
+        updateUserInfo();
+        renderBuildings();
+        showPage('buildings-page');
+    }
+    
     initRoleTabs();
     initLoginForm();
     initFilter();

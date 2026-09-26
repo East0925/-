@@ -36,6 +36,8 @@ let selectedSlots = [];
 let currentFilter = 'all';
 let reservations = [];
 let currentSelectedDate = '';
+let currentCancellingReservation = null;
+let previousPage = 'buildings-page';
 
 // 从本地存储加载预约记录
 function loadReservations() {
@@ -94,6 +96,12 @@ function getTodayDate() {
     return formatDate(new Date());
 }
 
+// 判断日期是否是今天或未来
+function isUpcoming(dateStr) {
+    const today = formatDate(new Date());
+    return dateStr >= today;
+}
+
 // 获取某个教室在指定日期的已预约时段ID列表
 function getOccupiedSlotIds(classroomId, date) {
     const dateStr = formatDate(date);
@@ -118,6 +126,12 @@ function getSlotInfo(slotId) {
     return timeSlots.find(s => s.id === slotId);
 }
 
+// 获取当前用户的预约记录
+function getUserReservations() {
+    if (!currentUser) return [];
+    return reservations.filter(r => r.userName === currentUser.name);
+}
+
 // 页面切换
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
@@ -125,6 +139,209 @@ function showPage(pageId) {
     });
     document.getElementById(pageId).classList.add('active');
     window.scrollTo(0, 0);
+}
+
+// 跳转到我的预约页面
+function goToMyReservations() {
+    const activePage = document.querySelector('.page.active');
+    if (activePage) {
+        previousPage = activePage.id;
+    }
+    renderMyReservations();
+    showPage('reservations-page');
+}
+
+// 从我的预约页面返回
+function backFromReservations() {
+    showPage(previousPage);
+}
+
+// 渲染我的预约列表
+function renderMyReservations() {
+    const userReservations = getUserReservations();
+    const list = document.getElementById('reservations-list');
+    const emptyState = document.getElementById('empty-state');
+    
+    document.getElementById('header-username-3').textContent = currentUser.name;
+    const roleNames = { student: '学生', teacher: '教师', leader: '领导' };
+    document.getElementById('header-role-3').textContent = roleNames[currentUser.role];
+    
+    const upcoming = userReservations.filter(r => isUpcoming(r.date));
+    const past = userReservations.filter(r => !isUpcoming(r.date));
+    
+    document.getElementById('stat-total').textContent = userReservations.length;
+    document.getElementById('stat-upcoming').textContent = upcoming.length;
+    document.getElementById('stat-past').textContent = past.length;
+    
+    if (userReservations.length === 0) {
+        list.style.display = 'none';
+        emptyState.style.display = 'flex';
+        return;
+    }
+    
+    list.style.display = 'block';
+    emptyState.style.display = 'none';
+    
+    const sortedReservations = [...userReservations].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return Math.min(...a.slots) - Math.min(...b.slots);
+    });
+    
+    list.innerHTML = '';
+    sortedReservations.forEach((reservation, index) => {
+        const isUpcomingFlag = isUpcoming(reservation.date);
+        const slotNames = reservation.slots
+            .map(id => {
+                const slot = getSlotInfo(id);
+                return slot ? `${slot.name}(${slot.startTime}-${slot.endTime})` : '';
+            })
+            .join('、');
+        
+        const card = document.createElement('div');
+        card.className = `reservation-card ${isUpcomingFlag ? 'upcoming' : 'past'}`;
+        card.style.animationDelay = `${index * 0.05}s`;
+        
+        card.innerHTML = `
+            <div class="reservation-status">
+                <span class="status-badge ${isUpcomingFlag ? 'upcoming' : 'past'}">
+                    ${isUpcomingFlag ? '待使用' : '已完成'}
+                </span>
+            </div>
+            <div class="reservation-body">
+                <div class="reservation-header">
+                    <h4 class="reservation-title">${reservation.buildingName} ${reservation.classroomNumber}教室</h4>
+                </div>
+                <div class="reservation-details">
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span>${reservation.date}</span>
+                    </div>
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>${slotNames}</span>
+                    </div>
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        <span>${reservation.userPhone}</span>
+                    </div>
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                        <span>${reservation.purpose}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="reservation-actions">
+                ${isUpcomingFlag ? `
+                    <button class="action-btn change-btn" data-id="${reservation.id}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        更换教室
+                    </button>
+                    <button class="action-btn cancel-btn" data-id="${reservation.id}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        取消预约
+                    </button>
+                ` : `
+                    <span class="past-label">已结束</span>
+                `}
+            </div>
+        `;
+        
+        list.appendChild(card);
+    });
+    
+    document.querySelectorAll('.cancel-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            openCancelModal(id);
+        });
+    });
+    
+    document.querySelectorAll('.change-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            changeReservation(id);
+        });
+    });
+}
+
+// 打开取消预约弹窗
+function openCancelModal(reservationId) {
+    const reservation = reservations.find(r => r.id === reservationId);
+    if (!reservation) return;
+    
+    currentCancellingReservation = reservation;
+    
+    const slotNames = reservation.slots
+        .map(id => {
+            const slot = getSlotInfo(id);
+            return slot ? `${slot.name}(${slot.startTime}-${slot.endTime})` : '';
+        })
+        .join('、');
+    
+    document.getElementById('cancel-info').innerHTML = `
+        <p><strong>教学楼：</strong>${reservation.buildingName}</p>
+        <p><strong>教室：</strong>${reservation.classroomNumber} 教室</p>
+        <p><strong>预约人：</strong>${reservation.userName}</p>
+        <p><strong>联系电话：</strong>${reservation.userPhone}</p>
+        <p><strong>日期：</strong>${reservation.date}</p>
+        <p><strong>时段：</strong>${slotNames}</p>
+    `;
+    
+    document.getElementById('cancel-modal').classList.add('active');
+}
+
+// 确认取消预约
+function confirmCancel() {
+    if (!currentCancellingReservation) return;
+    
+    const reservationId = currentCancellingReservation.id;
+    reservations = reservations.filter(r => r.id !== reservationId);
+    saveReservations();
+    
+    currentCancellingReservation = null;
+    closeModal('cancel-modal');
+    
+    setTimeout(() => {
+        document.getElementById('cancel-success-modal').classList.add('active');
+    }, 200);
+    
+    renderMyReservations();
+    renderClassrooms();
+}
+
+// 更换预约教室
+function changeReservation(reservationId) {
+    const reservation = reservations.find(r => r.id === reservationId);
+    if (!reservation) return;
+    
+    const building = buildings.find(b => b.name === reservation.buildingName);
+    if (building) {
+        selectBuilding(building);
+    } else {
+        showPage('buildings-page');
+    }
 }
 
 // 身份切换
@@ -158,9 +375,15 @@ function initLoginForm() {
         const role = activeTab.dataset.role;
         const name = document.getElementById('name').value.trim();
         const purpose = document.getElementById('purpose').value.trim();
+        const phone = document.getElementById('phone').value.trim();
         
-        if (!name || !purpose) {
+        if (!name || !purpose || !phone) {
             alert('请填写完整信息');
+            return;
+        }
+        
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+            alert('请输入正确的手机号码');
             return;
         }
         
@@ -178,13 +401,15 @@ function initLoginForm() {
                 name: name,
                 className: className,
                 studentId: studentId,
-                purpose: purpose
+                purpose: purpose,
+                phone: phone
             };
         } else {
             currentUser = {
                 role: role,
                 name: name,
-                purpose: purpose
+                purpose: purpose,
+                phone: phone
             };
         }
         
@@ -418,6 +643,7 @@ function openReserveModal(classroom) {
     document.getElementById('modal-classroom').textContent = classroom.roomNumber + ' 教室';
     document.getElementById('modal-capacity').textContent = classroom.capacity + ' 人';
     document.getElementById('modal-user').textContent = currentUser.name;
+    document.getElementById('modal-phone').textContent = currentUser.phone;
     document.getElementById('modal-purpose-text').value = currentUser.purpose;
     
     const dateInput = document.getElementById('reserve-date');
@@ -426,7 +652,6 @@ function openReserveModal(classroom) {
     
     renderTimeSlots(classroom.id, currentSelectedDate);
     
-    // 移除旧的事件监听器，添加新的
     const newDateInput = dateInput.cloneNode(true);
     dateInput.parentNode.replaceChild(newDateInput, dateInput);
     
@@ -462,6 +687,22 @@ function initModals() {
         closeModal('success-modal');
     });
     
+    document.getElementById('close-cancel-modal').addEventListener('click', () => {
+        closeModal('cancel-modal');
+    });
+    
+    document.getElementById('cancel-cancel-btn').addEventListener('click', () => {
+        closeModal('cancel-modal');
+    });
+    
+    document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
+        confirmCancel();
+    });
+    
+    document.getElementById('cancel-success-btn').addEventListener('click', () => {
+        closeModal('cancel-success-modal');
+    });
+    
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
@@ -492,7 +733,6 @@ function confirmReserve() {
         return;
     }
     
-    // 再次检查冲突（防止并发问题）
     const occupiedSlotIds = getOccupiedSlotIds(selectedClassroom.id, date);
     const conflictSlots = selectedSlots.filter(id => occupiedSlotIds.includes(id));
     
@@ -507,11 +747,11 @@ function confirmReserve() {
         return;
     }
     
-    // 创建预约记录
     const reservation = {
         id: Date.now().toString(),
         userName: currentUser.name,
         userRole: currentUser.role,
+        userPhone: currentUser.phone,
         classroomId: selectedClassroom.id,
         buildingName: selectedClassroom.buildingName,
         classroomNumber: selectedClassroom.roomNumber,
@@ -526,7 +766,6 @@ function confirmReserve() {
     
     closeModal('reserve-modal');
     
-    // 生成成功详情
     const slotNames = reservation.slots
         .map(id => {
             const slot = getSlotInfo(id);
@@ -537,6 +776,8 @@ function confirmReserve() {
     document.getElementById('success-detail').innerHTML = `
         <p><strong>教学楼：</strong>${selectedClassroom.buildingName}</p>
         <p><strong>教室：</strong>${selectedClassroom.roomNumber} 教室</p>
+        <p><strong>预约人：</strong>${currentUser.name}</p>
+        <p><strong>联系电话：</strong>${currentUser.phone}</p>
         <p><strong>日期：</strong>${date}</p>
         <p><strong>时段：</strong>${slotNames}</p>
         <p><strong>用途：</strong>${purpose}</p>
@@ -558,6 +799,23 @@ function initBackButtons() {
     document.getElementById('back-to-buildings').addEventListener('click', () => {
         showPage('buildings-page');
     });
+    
+    document.getElementById('back-from-reservations').addEventListener('click', () => {
+        backFromReservations();
+    });
+}
+
+// 初始化我的预约按钮
+function initMyReservationsButtons() {
+    document.getElementById('my-reservations-btn').addEventListener('click', () => {
+        previousPage = 'buildings-page';
+        goToMyReservations();
+    });
+    
+    document.getElementById('my-reservations-btn-2').addEventListener('click', () => {
+        previousPage = 'classrooms-page';
+        goToMyReservations();
+    });
 }
 
 // 初始化
@@ -568,6 +826,7 @@ function init() {
     initFilter();
     initModals();
     initBackButtons();
+    initMyReservationsButtons();
 }
 
 document.addEventListener('DOMContentLoaded', init);

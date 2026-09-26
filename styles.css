@@ -1145,6 +1145,386 @@ body {
     color: var(--primary-light);
 }
 
+/* 我的预约按钮 */
+.my-reservations-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(30, 58, 138, 0.1);
+    border: 1.5px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.my-reservations-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+}
+
+.my-reservations-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* 我的预约页面 */
+.reservations-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.reservations-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(30, 58, 138, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--primary-color);
+}
+
+.stat-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.stat-icon.upcoming {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.stat-icon.past {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* 预约列表 */
+.reservations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.reservation-card {
+    display: flex;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: all var(--transition-fast);
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.reservation-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+}
+
+.reservation-card.upcoming {
+    border-left: 4px solid #f59e0b;
+}
+
+.reservation-card.past {
+    border-left: 4px solid #9ca3af;
+}
+
+.reservation-status {
+    padding: 20px 16px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.upcoming {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.status-badge.past {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.reservation-body {
+    flex: 1;
+    padding: 20px 16px 20px 0;
+}
+
+.reservation-header {
+    margin-bottom: 12px;
+}
+
+.reservation-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.reservation-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.detail-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--text-light);
+    flex-shrink: 0;
+}
+
+.reservation-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    border-left: 1px solid var(--border-color);
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+}
+
+.action-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.change-btn {
+    background: rgba(30, 58, 138, 0.1);
+    color: var(--primary-color);
+    border-color: transparent;
+}
+
+.change-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.cancel-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+    border-color: transparent;
+}
+
+.cancel-btn:hover {
+    background: var(--error-color);
+    color: white;
+}
+
+.past-label {
+    font-size: 13px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+/* 空状态 */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 50%;
+    color: #9ca3af;
+    margin-bottom: 20px;
+}
+
+.empty-icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* 取消预约弹窗 */
+.cancel-warning {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #fef3c7;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+}
+
+.cancel-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f59e0b;
+    border-radius: 50%;
+    color: white;
+    flex-shrink: 0;
+}
+
+.cancel-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.cancel-text h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #92400e;
+    margin: 0 0 4px 0;
+}
+
+.cancel-text p {
+    font-size: 13px;
+    color: #b45309;
+    margin: 0;
+}
+
+.cancel-info {
+    background: #f9fafb;
+    border-radius: var(--radius-sm);
+    padding: 16px;
+}
+
+.cancel-info p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.cancel-info p:last-child {
+    margin-bottom: 0;
+}
+
+.cancel-info strong {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.btn-danger {
+    padding: 12px 24px;
+    background: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.cancel-success .success-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
 /* ========== 响应式 ========== */
 @media (max-width: 768px) {
     .page-header {
@@ -1196,6 +1576,25 @@ body {
 
     .modal-lg {
         max-width: 90%;
+    }
+
+    .reservations-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .reservation-card {
+        flex-direction: column;
+    }
+
+    .reservation-actions {
+        flex-direction: row;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        padding: 16px;
+    }
+
+    .my-reservations-btn span {
+        display: none;
     }
 }
 

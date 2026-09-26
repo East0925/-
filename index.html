@@ -68,6 +68,11 @@
                             <textarea id="purpose" name="purpose" rows="3" placeholder="请简要说明教室使用用途" required></textarea>
                         </div>
 
+                        <div class="form-group">
+                            <label for="phone">联系电话</label>
+                            <input type="tel" id="phone" name="phone" placeholder="请输入您的联系电话" required>
+                        </div>
+
                         <button type="submit" class="submit-btn">
                             <span>进入系统</span>
                             <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -96,6 +101,15 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <button class="my-reservations-btn" id="my-reservations-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        我的预约
+                    </button>
                     <div class="user-info">
                         <span class="user-name" id="header-username">用户</span>
                         <span class="user-role" id="header-role">学生</span>
@@ -134,6 +148,15 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <button class="my-reservations-btn" id="my-reservations-btn-2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        我的预约
+                    </button>
                     <div class="user-info">
                         <span class="user-name" id="header-username-2">用户</span>
                         <span class="user-role" id="header-role-2">学生</span>
@@ -160,6 +183,96 @@
 
                 <div class="classrooms-grid" id="classrooms-grid">
                     <!-- 教室卡片将通过 JS 动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的预约页面 -->
+        <div id="reservations-page" class="page">
+            <div class="page-header">
+                <div class="header-left">
+                    <button class="back-btn" id="back-from-reservations">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        返回
+                    </button>
+                    <div class="breadcrumb">
+                        <span class="breadcrumb-item">首页</span>
+                        <span class="breadcrumb-separator">/</span>
+                        <span class="breadcrumb-item active">我的预约</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span class="user-name" id="header-username-3">用户</span>
+                        <span class="user-role" id="header-role-3">学生</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reservations-container">
+                <div class="page-title-section">
+                    <h2 class="page-title">我的预约</h2>
+                    <p class="page-subtitle">查看和管理您的教室预约记录</p>
+                </div>
+
+                <div class="reservations-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="stat-total">0</span>
+                            <span class="stat-label">总预约数</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon upcoming">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="stat-upcoming">0</span>
+                            <span class="stat-label">待使用</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon past">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <path d="M22 4L12 14.01l-3-3"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="stat-past">0</span>
+                            <span class="stat-label">已完成</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reservations-list" id="reservations-list">
+                    <!-- 预约记录将通过 JS 动态生成 -->
+                </div>
+
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <h3>暂无预约记录</h3>
+                    <p>您还没有预约任何教室，快去预约吧！</p>
                 </div>
             </div>
         </div>
@@ -193,6 +306,10 @@
                         <div class="info-row">
                             <span class="info-label">预约人</span>
                             <span class="info-value" id="modal-user">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">联系电话</span>
+                            <span class="info-value" id="modal-phone">-</span>
                         </div>
                     </div>
 
@@ -281,6 +398,58 @@
                 <div class="success-detail" id="success-detail"></div>
                 <p class="success-text">您的教室预约已提交，请按时使用</p>
                 <button class="btn-primary" id="success-btn">确定</button>
+            </div>
+        </div>
+
+        <!-- 取消预约确认弹窗 -->
+        <div id="cancel-modal" class="modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>取消预约</h3>
+                    <button class="modal-close" id="close-cancel-modal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="cancel-warning">
+                        <div class="cancel-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                        </div>
+                        <div class="cancel-text">
+                            <h4>确定要取消这个预约吗？</h4>
+                            <p>取消后该时段将被释放，其他人可以预约。</p>
+                        </div>
+                    </div>
+                    <div class="cancel-info" id="cancel-info"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="cancel-cancel-btn">我再想想</button>
+                    <button class="btn-danger" id="confirm-cancel-btn">确认取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 取消成功弹窗 -->
+        <div id="cancel-success-modal" class="modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content success-modal">
+                <div class="success-icon cancel-success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                </div>
+                <h3>已取消预约</h3>
+                <p class="success-text">您的预约已成功取消，时段已释放</p>
+                <button class="btn-primary" id="cancel-success-btn">确定</button>
             </div>
         </div>
     </div>
